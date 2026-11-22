@@ -3,33 +3,31 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 
 export default function RegisterPage() {
-  // Controlled form state.
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const { register } = useAuth()
   const navigate = useNavigate()
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
     setError('')
-    setMessage('')
-
-    // Temporary local registration validation.
-    if (!name || !email || password.length < 6) {
-      setError('Complete every field. Passwords need at least 6 characters.')
-      return
-    }
+    setSubmitting(true)
 
     try {
-      register(name, email, password)
-      setMessage('Registration successful.')
+      await register(name, email, password)
       navigate('/')
-    } catch (registrationError) {
-      setError(registrationError.message)
+    } catch (authError) {
+      setError(
+        authError.code?.startsWith('auth/')
+          ? authError.code.replace('auth/', '').replaceAll('-', ' ')
+          : authError.message,
+      )
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -43,6 +41,7 @@ export default function RegisterPage() {
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
+            required
           />
         </label>
 
@@ -52,6 +51,7 @@ export default function RegisterPage() {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
+            required
           />
         </label>
 
@@ -61,13 +61,15 @@ export default function RegisterPage() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            required
           />
         </label>
 
         {error && <p role="alert">{error}</p>}
-        {message && <p role="status">{message}</p>}
 
-        <button type="submit">Create account</button>
+        <button type="submit" disabled={submitting}>
+          {submitting ? 'Please wait…' : 'Create account'}
+        </button>
       </form>
     </main>
   )

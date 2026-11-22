@@ -1,27 +1,68 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updateProfile,
+} from 'firebase/auth'
+import { firebaseApp, firebaseConfigured } from '../services/firebase'
 import { AuthContext } from './authContext'
 
-// This provider stores the signed-in user for every route.
 export function AuthProvider({ children }) {
-  // Read the saved user when the application starts.
-  const [user, setUser] = useState(() => {
-    // localStorage retains data after refresh.
-    const savedUser = localStorage.getItem('parallax-user')
+  // Restore demo authentication if Firebase is not configured.
+  const [user, setUser] = useState(() =>
+    firebaseConfigured
+      ? null
+      : JSON.parse(localStorage.getItem('parallax-user') || 'null'),
+  )
 
-    // JSON.parse converts saved text back into an object.
-    return savedUser ? JSON.parse(savedUser) : null
-  })
+  const [loading, setLoading] = useState(firebaseConfigured)
 
-  // Login receives credentials and updates global authentication state.
-  const login = (email, password) => {
-    // Guard against invalid values.
-    if (!email || !password) {
-      throw new Error('Enter both email and password.')
+  // Listen for Firebase authentication changes.
+  useEffect(() => {
+    if (!firebaseConfigured) return
+
+    const auth = getAuth(firebaseApp)
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(
+        firebaseUser
+          ? {
+              name:
+                firebaseUser.displayName ||
+                firebaseUser.email?.split('@')[0] ||
+                'User',
+              email: firebaseUser.email,
+              provider: 'firebase',
+            }
+          : null,
+      )
+
+      setLoading(false)
+    })
+
+    return unsubscribe
+  }, [])
+
+  // Email/password login.
+  const login = async (email, password) => {
+    if (!email || password.length < 6) {
+      throw new Error(
+        'Enter a valid email and a password of at least 6 characters.',
+      )
     }
 
-    // Throwing an error lets the login page display feedback.
-    if (password.length < 6) {
-      throw new Error('Password must contain at least 6 characters.')
+    if (firebaseConfigured) {
+      await signInWithEmailAndPassword(
+        getAuth(firebaseApp),
+        email,
+        password,
+      )
+      return
     }
 
     const authenticatedUser = {
@@ -30,38 +71,93 @@ export function AuthProvider({ children }) {
       provider: 'local',
     }
 
-    // Save the user after login.
     localStorage.setItem(
       'parallax-user',
-      // JSON.stringify converts a user object into text.
-      JSON.stringify(authenticatedUser)
+      JSON.stringify(authenticatedUser),
     )
 
     setUser(authenticatedUser)
   }
 
-  // Remove the currently signed-in user.
-  const logout = () => {
-    setUser(null)
-  }
-
-  const register = (name, email, password) => {
+  // Registration.
+  const register = async (name, email, password) => {
     if (!name || !email || password.length < 6) {
-      throw new Error('Complete every field.')
+      throw new Error(
+        'Complete every field. Passwords need at least 6 characters.',
+      )
     }
 
-    // Create and save the authenticated user.
-    const newUser = { name, email, provider: 'local' }
-    localStorage.setItem('parallax-user', JSON.stringify(newUser))
+    if (firebaseConfigured) {
+      const auth = getAuth(firebaseApp)
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      )
 
-    // This is the line that must update global authentication.
-    setUser(newUser)
+      await updateProfile(credential.user, {
+        displayName: name,
+      })
+
+      return
+    }
+
+    const authenticatedUser = {
+      name,
+      email,
+      provider: 'local',
+    }
+
+    localStorage.setItem(
+      'parallax-user',
+      JSON.stringify(authenticatedUser),
+    )
+
+    setUser(authenticatedUser)
+  }
+
+  // Google login.
+  const loginWithGoogle = async () => {
+    if (firebaseConfigured) {
+      await signInWithPopup(
+        getAuth(firebaseApp),
+        new GoogleAuthProvider(),
+      )
+      return
+    }
+
+    const googleUser = {
+      name: 'Google Planner',
+      email: 'planner@gmail.com',
+      provider: 'google-demo',
+    }
+
+    localStorage.setItem(
+      'parallax-user',
+      JSON.stringify(googleUser),
+    )
+
+    setUser(googleUser)
+  }
+
+  // Logout.
+  const logout = async () => {
+    if (firebaseConfigured) {
+      await signOut(getAuth(firebaseApp))
+      return
+    }
+
+    localStorage.removeItem('parallax-user')
+    setUser(null)
   }
 
   const value = {
     user,
+    loading,
+    firebaseConfigured,
     login,
     register,
+    loginWithGoogle,
     logout,
   }
 

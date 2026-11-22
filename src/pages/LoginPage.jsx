@@ -1,75 +1,84 @@
 import { useState } from 'react'
-import { useAuth } from '../context/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 
-// uses error and message state to display feedback to the user after form submission
 export default function LoginPage() {
-    // useAuth reads the login function from AuthProvider.
-    const { login, logout } = useAuth()
-    const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-    // Store the text entered into the form fields.
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+  const { login, loginWithGoogle } = useAuth()
+  const navigate = useNavigate()
 
-    // Store feedback displayed after submission.
-    const [error, setError] = useState('')
-    const [message, setMessage] = useState('')
+  const submit = async (event) => {
+    event.preventDefault()
+    setError('')
+    setSubmitting(true)
 
-    const submit = (event) => {
-        // Prevent the browser from refreshing the page.
-        event.preventDefault()
-        setError('')
-        setMessage('')
-
-        if (!email || !password) {
-            setError('Enter both email and password.')
-            return
-        }
-
-        if (password.length < 6) {
-            setError('Password must contain at least 6 characters.')
-            return
-        }
-
-        // try/catch converts authentication errors into visible feedback.
-        try {
-            login(email, password)
-            setMessage('Login successful.')
-            navigate('/')
-        } catch (loginError) {
-            setError(loginError.message)
-        }
+    try {
+      await login(email, password)
+      navigate('/')
+    } catch (authError) {
+      setError(
+        authError.code?.startsWith('auth/')
+          ? authError.code.replace('auth/', '').replaceAll('-', ' ')
+          : authError.message,
+      )
+    } finally {
+      setSubmitting(false)
     }
+  }
 
-    return (
-        <main>
-            <h1>Login</h1>
+  const google = async () => {
+    setError('')
+    setSubmitting(true)
 
-            <form onSubmit={submit}>
-                <label>
-                    Email
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                    />
-                </label>
+    try {
+      await loginWithGoogle()
+      navigate('/')
+    } catch (authError) {
+      setError(authError.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
-                <label>
-                    Password
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                    />
-                </label>
+  return (
+    <main>
+      <h1>Login</h1>
 
-                {error && <p role="alert">{error}</p>}
-                {message && <p role="status">{message}</p>}
+      <form onSubmit={submit}>
+        <label>
+          Email
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </label>
 
-                <button type="submit">Sign in</button>
-            </form>
-        </main>
-    )
+        <label>
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </label>
+
+        {error && <p role="alert">{error}</p>}
+
+        <button type="submit" disabled={submitting}>
+          {submitting ? 'Please wait…' : 'Sign in'}
+        </button>
+
+        <button type="button" onClick={google} disabled={submitting}>
+          Continue with Google
+        </button>
+      </form>
+    </main>
+  )
 }
