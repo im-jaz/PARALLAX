@@ -45,9 +45,23 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  const register = (name, email, password) => {
+    if (!name || !email || password.length < 6) {
+      throw new Error('Complete every field.')
+    }
+
+    // Create and save the authenticated user.
+    const newUser = { name, email, provider: 'local' }
+    localStorage.setItem('parallax-user', JSON.stringify(newUser))
+
+    // This is the line that must update global authentication.
+    setUser(newUser)
+  }
+
   const value = {
     user,
     login,
+    register,
     logout,
   }
 
