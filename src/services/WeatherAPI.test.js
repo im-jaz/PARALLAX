@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchCityWeather } from './weatherApi'
+import { fetchCityWeather } from './WeatherAPI'
 
 afterEach(() => vi.restoreAllMocks())
 
