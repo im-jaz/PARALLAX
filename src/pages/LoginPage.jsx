@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 // uses error and message state to display feedback to the user after form submission
 export default function LoginPage() {
     // useAuth reads the login function from AuthProvider.
-    const { login } = useAuth()
+    const { login, logout } = useAuth()
     const navigate = useNavigate()
 
     // Store the text entered into the form fields.

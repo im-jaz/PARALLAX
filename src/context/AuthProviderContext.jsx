@@ -3,7 +3,14 @@ import { AuthContext } from './authContext'
 
 // This provider stores the signed-in user for every route.
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  // Read the saved user when the application starts.
+  const [user, setUser] = useState(() => {
+    // localStorage retains data after refresh.
+    const savedUser = localStorage.getItem('parallax-user')
+
+    // JSON.parse converts saved text back into an object.
+    return savedUser ? JSON.parse(savedUser) : null
+  })
 
   // Login receives credentials and updates global authentication state.
   const login = (email, password) => {
@@ -17,17 +24,31 @@ export function AuthProvider({ children }) {
       throw new Error('Password must contain at least 6 characters.')
     }
 
-    // Temporary local authentication.
-    setUser({
+    const authenticatedUser = {
       name: email.split('@')[0],
       email,
       provider: 'local',
-    })
+    }
+
+    // Save the user after login.
+    localStorage.setItem(
+      'parallax-user',
+      // JSON.stringify converts a user object into text.
+      JSON.stringify(authenticatedUser)
+    )
+
+    setUser(authenticatedUser)
+  }
+
+  // Remove the currently signed-in user.
+  const logout = () => {
+    setUser(null)
   }
 
   const value = {
     user,
     login,
+    logout,
   }
 
   return (
