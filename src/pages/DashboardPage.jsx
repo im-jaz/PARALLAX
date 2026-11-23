@@ -3,6 +3,20 @@ import { fetchCityWeather } from '../services/WeatherAPI'
 import { useAuth } from '../context/useAuth'
 import { scenarioStore } from '../services/scenarioStore'
 import { INITIAL_ZONES, simulate } from '../utils/simulation'
+import { Activity, Building2, Route, Users } from 'lucide-react'
+import {
+  Activity,
+  Building2,
+  ChevronRight,
+  Crosshair,
+  Leaf,
+  LogOut,
+  MapPin,
+  Route,
+  Save,
+  Trash2,
+  Users,
+} from 'lucide-react'
 
 const POSITIONS = {
   Northbank: ['24%', '25%'], Central: ['51%', '43%'], Riverside: ['72%', '68%'], 'West End': ['27%', '72%'],
@@ -152,9 +166,6 @@ export default function DashboardPage() {
               )
             })}
 
-            <div className="coordinate readout-top">LAT 51.5072<br />LON 0.1276</div>
-            <div className="coordinate readout-bottom">SIM-T {String(horizon).padStart(2, '0')}Y<br />ΔT 0.42 SEC</div>
-
             <div className="selected-zone-card">
               <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-cyan-400">Selected sector</p>
               <h2 className="mt-1 text-xl font-black text-white">{selected.name}</h2>
@@ -168,10 +179,33 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid h-[128px] grid-cols-2 border-t border-white/[0.08] md:grid-cols-4">
-            <MetricStrip label="Projected population" value={scenario.totalPopulation.toLocaleString()} delta={`${populationDelta >= 0 ? '+' : ''}${populationDelta.toLocaleString()}`} />
-            <MetricStrip label="Network load" value={`${Math.round(scenario.trafficLoad * 100)}%`} delta={`${congestionDelta >= 0 ? '+' : ''}${congestionDelta}%`} />
-            <MetricStrip label="System resilience" value={`${scenario.resilience}/100`} delta={scenario.status} />
-            <MetricStrip label="Annual programme" value={`£${scenario.annualCost.toFixed(1)}M`} delta={`${scenario.bottlenecks.length} critical`} />
+            <MetricStrip
+              label="Projected population"
+              value={scenario.totalPopulation.toLocaleString()}
+              delta={`${populationDelta >= 0 ? '+' : ''}${populationDelta.toLocaleString()}`}
+              icon={Users}
+            />
+
+            <MetricStrip
+              label="Network load"
+              value={`${Math.round(scenario.trafficLoad * 100)}%`}
+              delta={`${congestionDelta >= 0 ? '+' : ''}${congestionDelta}%`}
+              icon={Route}
+            />
+
+            <MetricStrip
+              label="System resilience"
+              value={`${scenario.resilience}/100`}
+              delta={scenario.status}
+              icon={Activity}
+            />
+
+            <MetricStrip
+              label="Annual programme"
+              value={`£${scenario.annualCost.toFixed(1)}M`}
+              delta={`${scenario.bottlenecks.length} critical`}
+              icon={Building2}
+            />
           </div>
         </section>
 
