@@ -4,19 +4,6 @@ import { useAuth } from '../context/useAuth'
 import { scenarioStore } from '../services/scenarioStore'
 import { INITIAL_ZONES, simulate } from '../utils/simulation'
 import { Activity, Building2, Route, Users } from 'lucide-react'
-import {
-  Activity,
-  Building2,
-  ChevronRight,
-  Crosshair,
-  Leaf,
-  LogOut,
-  MapPin,
-  Route,
-  Save,
-  Trash2,
-  Users,
-} from 'lucide-react'
 
 const POSITIONS = {
   Northbank: ['24%', '25%'], Central: ['51%', '43%'], Riverside: ['72%', '68%'], 'West End': ['27%', '72%'],
