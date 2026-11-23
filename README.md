@@ -55,11 +55,4 @@ No Firebase secret or private credential is stored in source code. Firebase web 
 - `docs/WIREFRAMES.md`: interface planning notes
 - `public/wireframe.svg`: visual wireframe asset
 
-## Presentation flow
 
-1. Sign in with the prefilled presentation account or configure Firebase.
-2. Increase population growth and observe demand metrics.
-3. Change zones and explain the external weather context.
-4. Add road capacity and show congestion improve.
-5. Name and save a scenario.
-6. Load and update the scenario, then delete it.
